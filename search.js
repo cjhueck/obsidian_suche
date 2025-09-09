@@ -1,19 +1,20 @@
 const searchBox = document.getElementById("searchBox");
 const resultsDiv = document.getElementById("results");
 
-// Lade alle JSON-Chunks dynamisch
 async function loadChunks() {
   const chunkList = [
-    // Liste der Dateien im chunks/-Ordner (wird automatisch aufgebaut)
-    "3856c5ab.json", "1b339d69.json", "cd747a16.json", "229ea8c5.json", "b895e271.json",
-    // Füge hier alle weiteren Chunk-Dateien ein
+    // ⚠️ HIER chunk-Dateien manuell eintragen, z. B.:
+    "chunks/3856c5ab.json",
+    "chunks/1b339d69.json",
+    "chunks/cd747a16.json"
+    // usw.
   ];
 
   let allEntries = [];
 
   for (const file of chunkList) {
     try {
-      const res = await fetch(`chunks/${file}`);
+      const res = await fetch(file);
       const json = await res.json();
       allEntries = allEntries.concat(json);
     } catch (e) {
@@ -25,18 +26,33 @@ async function loadChunks() {
 }
 
 function highlight(text, terms) {
-  const pattern = new RegExp("(" + terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join("|") + ")", "gi");
+  const pattern = new RegExp("(" + terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") + ")", "gi");
   return text.replace(pattern, "<span class='highlight'>$1</span>");
+}
+
+function extractContext(entryText, terms, charsBefore = 100, charsAfter = 500) {
+  const lowerText = entryText.toLowerCase();
+  for (let term of terms) {
+    const idx = lowerText.indexOf(term.toLowerCase());
+    if (idx !== -1) {
+      const start = Math.max(0, idx - charsBefore);
+      const end = Math.min(entryText.length, idx + charsAfter);
+      return entryText.slice(start, end) + "...";
+    }
+  }
+  return entryText.slice(0, 700) + "...";
 }
 
 function makeResult(entry, terms) {
   const pubBase = "https://publish.obsidian.md/steiner-ga/";
   const link = `${pubBase}${entry.path}`;
 
+  const context = extractContext(entry.text, terms);
+
   return `
     <div class="result">
       <strong><a href="${link}" target="_blank">${entry.title}</a></strong><br>
-      ${highlight(entry.text.slice(0, 300) + "...", terms)}
+      ${highlight(context, terms)}
     </div>
   `;
 }
