@@ -46,7 +46,7 @@ function makeResult(entry, terms) {
   const context = extractContext(entry.text, terms);
   return `
     <div class="result">
-      <strong><a href="${link}" target="_blank">${entry.title}</a></strong><br>
+      <strong><a href="${link}">${entry.title}</a></strong><br>
       ${highlight(context, terms)}
     </div>
   `;
