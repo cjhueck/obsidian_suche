@@ -30,7 +30,7 @@ function highlight(text, terms) {
   return text.replace(pattern, "<span class='highlight'>$1</span>");
 }
 
-function extractContext(entryText, terms, charsBefore = 300, charsAfter = 700) {
+function extractContext(entryText, terms, charsBefore = 400, charsAfter = 800) {
   const lowerText = entryText.toLowerCase();
   for (let term of terms) {
     const idx = lowerText.indexOf(term.toLowerCase());
