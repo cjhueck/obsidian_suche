@@ -1,7 +1,6 @@
-
 const searchBox = document.getElementById("searchBox");
 const resultsDiv = document.getElementById("results");
-const proximitySelect = document.getElementById("proximity");
+const distanceSelect = document.getElementById("distanceSelect");
 
 async function loadChunks() {
   const chunkList = [
@@ -9,7 +8,9 @@ async function loadChunks() {
     "chunks/1b339d69.json",
     "chunks/cd747a16.json"
   ];
+
   let allEntries = [];
+
   for (const file of chunkList) {
     try {
       const res = await fetch(file);
@@ -19,15 +20,16 @@ async function loadChunks() {
       console.error("Fehler beim Laden von", file, e);
     }
   }
+
   return allEntries;
 }
 
 function highlight(text, terms) {
-  const pattern = new RegExp("(" + terms.map(t => t.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")).join("|") + ")", "gi");
+  const pattern = new RegExp("(" + terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") + ")", "gi");
   return text.replace(pattern, "<span class='highlight'>$1</span>");
 }
 
-function extractContext(entryText, terms, charsBefore = 200, charsAfter = 700) {
+function extractContext(entryText, terms, charsBefore = 100, charsAfter = 800) {
   const lowerText = entryText.toLowerCase();
   for (let term of terms) {
     const idx = lowerText.indexOf(term.toLowerCase());
@@ -40,10 +42,44 @@ function extractContext(entryText, terms, charsBefore = 200, charsAfter = 700) {
   return entryText.slice(0, 900) + "...";
 }
 
+function allTermsWithinDistance(text, terms, maxDistance) {
+  const words = text.toLowerCase().split(/\s+/);
+  const termPositions = terms.map(term => {
+    const positions = [];
+    for (let i = 0; i < words.length; i++) {
+      if (words[i].includes(term.toLowerCase())) {
+        positions.push(i);
+      }
+    }
+    return positions;
+  });
+
+  // Wenn einer der Begriffe nicht vorkommt
+  if (termPositions.some(posList => posList.length === 0)) return false;
+
+  // Suche nach einem Satz Positionen, bei dem alle innerhalb des maxDistance liegen
+  function checkAllDistances(combo) {
+    for (let i = 0; i < combo.length; i++) {
+      for (let j = i + 1; j < combo.length; j++) {
+        if (Math.abs(combo[i] - combo[j]) > maxDistance) return false;
+      }
+    }
+    return true;
+  }
+
+  // Brute Force: alle Kombinationen aus je einem Treffer pro Begriff prüfen
+  const cartesian = (arr) => arr.reduce((a, b) => a.flatMap(d => b.map(e => d.concat([e]))), [[]]);
+  const combinations = cartesian(termPositions);
+
+  return combinations.some(checkAllDistances);
+}
+
 function makeResult(entry, terms) {
   const pubBase = "https://publish.obsidian.md/steiner-ga/";
   const link = `${pubBase}${entry.path}`;
+
   const context = extractContext(entry.text, terms);
+
   return `
     <div class="result">
       <strong><a href="${link}">${entry.title}</a></strong><br>
@@ -52,51 +88,26 @@ function makeResult(entry, terms) {
   `;
 }
 
-function tokensWithinDistance(text, terms, maxDistance) {
-  const tokens = text.toLowerCase().split(/\s+/);
-  const positions = terms.map(term => []);
-
-  tokens.forEach((token, index) => {
-    terms.forEach((term, i) => {
-      if (token.includes(term.toLowerCase())) positions[i].push(index);
-    });
-  });
-
-  // Prüfe, ob es ein Set von Positionen gibt, die innerhalb von maxDistance liegen
-  for (let i of positions[0]) {
-    const rest = positions.slice(1);
-    if (checkProximity(i, rest, maxDistance)) return true;
-  }
-  return false;
-}
-
-function checkProximity(start, remainingPositions, maxDistance) {
-  if (remainingPositions.length === 0) return true;
-  for (let pos of remainingPositions[0]) {
-    if (Math.abs(pos - start) <= maxDistance) {
-      if (checkProximity(pos, remainingPositions.slice(1), maxDistance)) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
 async function initSearch() {
   const entries = await loadChunks();
 
   searchBox.addEventListener("input", doSearch);
-  proximitySelect.addEventListener("change", doSearch);
+  distanceSelect.addEventListener("change", doSearch);
 
   function doSearch() {
     const query = searchBox.value.trim();
-    const maxDistance = parseInt(proximitySelect.value, 10);
     if (!query) {
       resultsDiv.innerHTML = "";
       return;
     }
+
     const terms = query.toLowerCase().split(/\s+/);
-    const filtered = entries.filter(entry => tokensWithinDistance(entry.text, terms, maxDistance));
+    const maxDistance = parseInt(distanceSelect.value, 10);
+
+    const filtered = entries.filter(entry =>
+      allTermsWithinDistance(entry.text, terms, maxDistance)
+    );
+
     resultsDiv.innerHTML = filtered.slice(0, 50).map(e => makeResult(e, terms)).join("");
   }
 }
