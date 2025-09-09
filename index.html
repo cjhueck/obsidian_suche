@@ -1,0 +1,22 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Suche – Obsidian Publish</title>
+  <script defer src="flexsearch.bundle.js"></script>
+  <script defer src="search.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; max-width: 800px; margin: auto; }
+    input { width: 100%; padding: 0.5rem; font-size: 1.2rem; }
+    .result { margin: 1rem 0; padding: 0.5rem; border-bottom: 1px solid #ccc; }
+    .highlight { background: yellow; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Volltextsuche</h1>
+  <input id="searchBox" type="text" placeholder="Begriffe eingeben …" />
+  <div id="results"></div>
+</body>
+</html>
