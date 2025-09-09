@@ -1,67 +1,54 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <title>Suche in Obsidian-Publish-Texten</title>
+  <meta charset="UTF-8">
+  <title>Suche – Obsidian Publish</title>
+  <script src="flexsearch.bundle.js"></script>
+  <script defer src="search.js"></script>
   <style>
     body {
-      font-family: "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-      background: #f7f7f7;
-      color: #111;
-      margin: 2em;
+      font-family: sans-serif;
+      margin: 2rem;
+      background: #f9f9f9;
+      color: #222;
     }
-
     h1 {
-      color: #000;
+      font-size: 1.8rem;
     }
-
-    input, select {
-      padding: 10px;
-      margin: 10px 0;
-      font-size: 1em;
+    input[type="text"] {
       width: 100%;
-      max-width: 600px;
-      background: #eaf1ff;
+      padding: 0.6rem;
+      font-size: 1rem;
+      margin-bottom: 1rem;
       border: 1px solid #ccc;
       border-radius: 4px;
     }
-
+    select {
+      padding: 0.4rem;
+      margin-bottom: 1rem;
+      font-size: 1rem;
+    }
     .result {
       background: white;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ddd;
       border-radius: 5px;
-      padding: 1em;
-      margin: 1em 0;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1);
     }
-
-    .result a {
-      text-decoration: none;
-      color: #467886;
-    }
-
     .highlight {
       background-color: yellow;
-    }
-
-    label {
-      font-weight: bold;
     }
   </style>
 </head>
 <body>
   <h1>Suche in Obsidian-Publish-Texten</h1>
-
-  <input id="searchBox" type="text" placeholder="Suchbegriff(e) eingeben…" />
-
-  <label for="distanceSelect">Abstand zwischen Begriffen:</label>
-  <select id="distanceSelect">
+  <input type="text" id="searchBox" placeholder="Suchbegriffe eingeben …" />
+  <label for="proximity">Abstand zwischen Begriffen:</label>
+  <select id="proximity">
     <option value="10">innerhalb von 10 Wörtern</option>
     <option value="50">innerhalb von 50 Wörtern</option>
-    <option value="100">innerhalb von 100 Wörtern</option>
+    <option value="100" selected>innerhalb von 100 Wörtern</option>
   </select>
-
   <div id="results"></div>
-
-  <script src="search.js"></script>
 </body>
 </html>
