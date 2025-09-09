@@ -1,1 +1,1 @@
-// flexsearch bundle placeholder
+// flexsearch placeholder
