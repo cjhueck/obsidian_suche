@@ -42,7 +42,7 @@ function extractContext(entryText, terms, charsBefore = 100, charsAfter = 800) {
   return entryText.slice(0, 900) + "...";
 }
 
-function allTermsWithinDistance(text, terms, maxDistance) {
+function atLeastThreeTermsWithinDistance(text, terms, maxDistance) {
   const words = text.toLowerCase().split(/\s+/);
   const termPositions = terms.map(term => {
     const positions = [];
@@ -54,24 +54,27 @@ function allTermsWithinDistance(text, terms, maxDistance) {
     return positions;
   });
 
-  // Wenn einer der Begriffe nicht vorkommt
-  if (termPositions.some(posList => posList.length === 0)) return false;
+  const validPositions = termPositions.filter(pos => pos.length > 0);
+  if (validPositions.length < 3) return false;
 
-  // Suche nach einem Satz Positionen, bei dem alle innerhalb des maxDistance liegen
-  function checkAllDistances(combo) {
-    for (let i = 0; i < combo.length; i++) {
-      for (let j = i + 1; j < combo.length; j++) {
-        if (Math.abs(combo[i] - combo[j]) > maxDistance) return false;
+  for (let i = 0; i < validPositions.length - 2; i++) {
+    for (let j = i + 1; j < validPositions.length - 1; j++) {
+      for (let k = j + 1; k < validPositions.length; k++) {
+        for (let a of validPositions[i]) {
+          for (let b of validPositions[j]) {
+            for (let c of validPositions[k]) {
+              const positions = [a, b, c].sort((x, y) => x - y);
+              if (positions[2] - positions[0] <= maxDistance) {
+                return true;
+              }
+            }
+          }
+        }
       }
     }
-    return true;
   }
 
-  // Brute Force: alle Kombinationen aus je einem Treffer pro Begriff prüfen
-  const cartesian = (arr) => arr.reduce((a, b) => a.flatMap(d => b.map(e => d.concat([e]))), [[]]);
-  const combinations = cartesian(termPositions);
-
-  return combinations.some(checkAllDistances);
+  return false;
 }
 
 function makeResult(entry, terms) {
@@ -105,7 +108,7 @@ async function initSearch() {
     const maxDistance = parseInt(distanceSelect.value, 10);
 
     const filtered = entries.filter(entry =>
-      allTermsWithinDistance(entry.text, terms, maxDistance)
+      atLeastThreeTermsWithinDistance(entry.text, terms, maxDistance)
     );
 
     resultsDiv.innerHTML = filtered.slice(0, 50).map(e => makeResult(e, terms)).join("");
