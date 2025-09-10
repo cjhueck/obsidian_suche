@@ -1,4 +1,3 @@
-
 const searchBox = document.getElementById("searchBox");
 const resultsDiv = document.getElementById("results");
 const proximitySelect = document.getElementById("proximity");
@@ -46,7 +45,7 @@ function makeResult(entry, terms) {
   const context = extractContext(entry.text, terms);
   return `
     <div class="result">
-      <strong><a href="${link}">${entry.title}</a></strong><br>
+      <strong><a href="${link}" target="steiner-content">${entry.title}</a></strong><br>
       ${highlight(context, terms)}
     </div>
   `;
